@@ -74,4 +74,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/fillRandom" />
 
+    <Button
+        android:id="@+id/tagMismatch"
+        android:layout_width="132dp"
+        android:layout_height="53dp"
+        android:text="Tag Mismatch"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.505"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_bias="0.921" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>

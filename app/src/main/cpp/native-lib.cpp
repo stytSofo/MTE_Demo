@@ -7,8 +7,17 @@
 #include <signal.h>
 #include <sys/auxv.h>
 #include <random>
+#include <setjmp.h>
 
 #define LOGI(...) ((void)__android_log_print(ANDROID_LOG_INFO, "native-lib::", __VA_ARGS__))
+
+
+static sigjmp_buf jump_buffer;
+
+void handle_sigsegv(int sig) {
+    siglongjmp(jump_buffer, 1);
+}
+
 
 unsigned char volatile *buffer;
 bool isMteOff(){
@@ -288,4 +297,44 @@ Java_com_example_mte_1demo_MainActivity_traverseBuffer(JNIEnv *env, jobject thiz
     return avg_time/10.0;
 }
 
+extern "C" JNIEXPORT jdouble JNICALL
+Java_com_example_mte_1demo_MainActivity_mismatch(JNIEnv *env, jobject thiz, jlong elements){
+    size_t size = 16 * elements;
+    double times[10];
+
+    // Set up the signal handler for segmentation faults
+    struct sigaction sa;
+    memset(&sa, 0, sizeof(sa));
+    sa.sa_handler = handle_sigsegv;
+    sigaction(SIGSEGV, &sa, NULL);
+
+
+    for(int i = 0; i < 10; i++) {
+        volatile char c;
+        buffer = (unsigned char*)mte_malloc(size, 0x02);
+        memset((void *const) buffer, 'a', size);
+
+        if (sigsetjmp(jump_buffer, 1) == 0) {
+            auto start = std::chrono::high_resolution_clock::now();
+            c = buffer[size];
+            auto end = std::chrono::high_resolution_clock::now();
+
+            std::chrono::duration<double, std::milli> elapsed = end - start;
+            times[i] = elapsed.count();
+        } else {
+            LOGI("Memory tag mismatch detected and handled.");
+            // Handle the error or reset the operation
+            continue;
+        }
+
+        mte_free((void *)buffer, size);
+        LOGI("Read %c from buffer", c);
+    }
+
+    double avg_time = 0;
+    for(int i = 0; i < 10; i++) {
+        avg_time += times[i];
+    }
+    return avg_time / 10.0;
+}
 

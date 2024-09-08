@@ -120,6 +120,19 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Button mismatch = binding.tagMismatch;
+        mismatch.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v)  {
+                double[] allocationTime = new double[129];
+                for(int i = 0;i<129;i++){
+                    allocationTime[i]= mismatch(i*2);
+                }
+                for(int i = 0;i<129;i++){
+                    Log.v("Time", "Time crashing " + 2*i*16 + " elements: " + allocationTime[i]);
+                }
+            }
+        });
 
         // Example of a call to a native method
         TextView tv = binding.sampleText;
@@ -140,6 +153,5 @@ public class MainActivity extends AppCompatActivity {
     public native double traverseBufferRandom(long elements);
     public native double fillBuffer(long elements);
     public native double fillBufferRandom(long elements);
-
-
+    public native double mismatch(long elements);
 }
